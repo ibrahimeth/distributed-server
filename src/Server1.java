@@ -1,15 +1,31 @@
 import java.io.*;
 import java.net.*;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Server1 {
     private static final int PORT = 5001; // Server1's port
-
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_BLACK = "\u001B[30m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
+    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_WHITE = "\u001B[37m";
+    public static final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
+    public static final String ANSI_RED_BACKGROUND = "\u001B[41m";
+    public static final String ANSI_GREEN_BACKGROUND = "\u001B[42m";
+    public static final String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
+    public static final String ANSI_BLUE_BACKGROUND = "\u001B[44m";
+    public static final String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
+    public static final String ANSI_CYAN_BACKGROUND = "\u001B[46m";
+    public static final String ANSI_WHITE_BACKGROUND = "\u001B[47m";
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(PORT);
-        System.out.println("Server1 is running on port " + PORT);
-
+        System.out.println(ANSI_BLACK_BACKGROUND + ANSI_GREEN +"Server1 is running on port " + PORT + ANSI_RESET);
         Aboneler serverAboneler = new Aboneler();
 
         //new PingThread("localhost", 5002).start(); // Ping Server2
@@ -50,77 +66,168 @@ public class Server1 {
                 message = in.readLine();
                 if (message != null) {
                     String[] commandList = message.split(" ");
+                    if (commandList.length != 2){
+                        out.println("50 HATA - You should send it as 'command {userId}'");
+                        return;
+                    }
                     String command = commandList[0];
-                    String userId = commandList[1];
+                    int userId = Integer.parseInt(commandList[1]);
                     if (command.equals("ABONOL")){
-                        //Aboneler classında userId li kullanıcı hesabı var mı?
-                        controlIsUserCorrect(out, userId); // kullanıcı abone değilse kaydını yapar.
-                        Thread a = new ServerUpdate("localhost", 5002, serverAboneler); // Ping Server2
-                        a.start();
-                        a.join();
-                        //new ServerUpdate("localhost", 5003, serverAboneler).start(); // Ping Server3
-                    }else if (command.equals("ABONPTAL")){
-                        controlUserSubscriber(out, userId);
+                        userCreateSub(out, userId); // kullanıcı abone değilse kaydını yapar.
+                    }else if (command.equals("ABONIPTAL")){
+                        userDeleteSubscriber(out, userId);
+                    } else if (command.equals("GIRIS")) {
+                        logginUser(userId, out);
+                    } else if (command.equals("CIKIS")) {
+                        logoutUser(userId, out);
+                    }else {
+                        out.println("50 HATA - UNKNOWN COMMAND SENT");
+                        return;
                     }
                 }
-                // burayı yönetmemiz gerekiyor.
                 // Send a response back to the client
                 out.println("55 TAMM");
             } catch (IOException e) {
                 throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
-            System.out.println("Received message on Server1("+currentThread().getId() +") from client: " + message);
+            System.out.println("Received message on Server1("+currentThread().getId() +") from client: " + ANSI_YELLOW_BACKGROUND + ANSI_BLACK + " " + message + " "+ ANSI_RESET);
         }
-        private void controlUserSubscriber(PrintWriter out, String userId){
+        private void userDeleteSubscriber(PrintWriter out, int userId){
             ArrayList<Boolean> abonelerListesi;
             abonelerListesi = (ArrayList<Boolean>) serverAboneler.getAboneler();
             try {
-                if(abonelerListesi.get(Integer.parseInt(userId) - 1)){
-                    abonelerListesi.set(Integer.parseInt(userId) - 1, false);
-                    System.out.println("KULLANICI ABONELIGI IPTAL EDILDI");
+                if(abonelerListesi.get(userId - 1)){
+                    abonelerListesi.set(userId - 1, false);
                     //sunucuları haberdar et.
                 }else {
-                    System.out.println("KULLANICI ZATEN YOK");
-                    //çevrimiçi yap
-                    //abonelerListesi.set(Integer.parseInt(userId) - 1, true);
+                    out.println("50 HATA - NO SUBSCRIPTION ALREADY");
+                    return;
                 }
             }catch (Exception b){
                 //zaten kullanıcı abonelıgı yok hata yonetimi yapılamsı gerkiyor.
-                out.println("Already there is no subscriber yet");
+                out.println("50 HATA - NO SUBSCRIPTION ALREADY");
+                return;
             }
-            System.out.print("Aboneler Listesi => ");
+            System.out.print("ABONELER LİSTESİ=> ");
             System.out.println(abonelerListesi);
             serverAboneler.setAboneler(abonelerListesi);
+            setEpochMiliSeconds();
+            Thread a = new ServersUpdate("localhost", 5002, serverAboneler); // Ping Server2
+            Thread b = new ServersUpdate("localhost", 5003, serverAboneler); // Ping Server2
+            b.start();
+            a.start();
+            try {
+                a.join();
+                b.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
-        private void controlIsUserCorrect(PrintWriter out,String userId){
+        private void userCreateSub(PrintWriter out,int userId) {
             ArrayList<Boolean> abonelerListesi;
             abonelerListesi = (ArrayList<Boolean>) serverAboneler.getAboneler();
             try {
-                if(abonelerListesi.get(Integer.parseInt(userId) - 1)){
-                    System.out.println("KULLANICI ZATEN VAR");
-                    //true döenebilirsin
+                if(abonelerListesi.get(userId - 1)){
+                    out.println("50 HATA - SUBSCRIPTION ALREADY EXISTS");
+                    return;
                 }else {
-                    System.out.println("KULLANICI KAYDI YAPILDI");
-                    //çevrimiçi yap
-                    abonelerListesi.set(Integer.parseInt(userId) - 1, true);
+                    abonelerListesi.set(userId - 1, true);
                 }
             }catch (Exception b){
-                for (int i = 0 ; i < Integer.parseInt(userId) - 1 ; i++){
+                for (int i = 0 ; i < userId - 1 ; i++){
                     try {
-                        if(abonelerListesi.get(i) == null){
-                            System.out.println("evet null");
-                        }
+                        abonelerListesi.get(i);
                     }catch (IndexOutOfBoundsException e){
                         abonelerListesi.add(false);
                     }
                 }
                 abonelerListesi.add(true);
             }
-            System.out.print("Aboneler Listesi => ");
+            System.out.print("ABONELER LİSTESİ => ");
             System.out.println(abonelerListesi);
             serverAboneler.setAboneler(abonelerListesi);
+            setEpochMiliSeconds();
+            Thread a = new ServersUpdate("localhost", 5002, serverAboneler); // Ping Server2
+            Thread b = new ServersUpdate("localhost", 5003, serverAboneler); // Ping Server2
+            a.start();
+            b.start();
+            try {
+                a.join();
+                b.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        private void logginUser(int userId, PrintWriter out){
+            List<Boolean> girisYapanlarListesi = serverAboneler.getGirisYapanlarListesi();
+            List<Boolean> aboneOlanlarListesi= serverAboneler.getAboneler();
+            if (aboneOlanlarListesi.size() >= userId && aboneOlanlarListesi.get(userId - 1)){
+                if(girisYapanlarListesi.size() < userId){
+                    for (int i = 0; i < userId - 1; i++){
+                        try {
+                            girisYapanlarListesi.get(i);
+                        }catch (Exception e){
+                            girisYapanlarListesi.add(false);
+                        }
+                    }
+                    girisYapanlarListesi.add(true);
+                }else{ //Guzel dizi boyutu normal
+                    if (girisYapanlarListesi.get(userId - 1).equals(true)){
+                        out.println("50 HATA - USER ALREADY LOGGED");
+                        return;
+                    }else {
+                        girisYapanlarListesi.set(userId - 1, true) ;
+                    }
+                }
+                System.out.print("GİRİŞ YAPANLAR LİSTESİ => ");
+                System.out.println(girisYapanlarListesi);
+                serverAboneler.setGirisYapanlarListesi(girisYapanlarListesi);
+                setEpochMiliSeconds();
+                Thread a = new ServersUpdate("localhost", 5002, serverAboneler); // Ping Server2
+                Thread b = new ServersUpdate("localhost", 5003, serverAboneler); // Ping Server2
+                a.start();
+                b.start();
+                try {
+                    a.join();
+                    b.join();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }else{
+                out.println("50 HATA - USER CANNOT LOGIN WITHOUT SUBSCRIBE");
+            }
+        }
+        private void setEpochMiliSeconds(){
+            long a = Instant.now().getEpochSecond();
+            serverAboneler.setEpochMiliSeconds(a);
+        }
+        private void logoutUser(int userID, PrintWriter out){
+            List<Boolean> girisYapanlarListesi = serverAboneler.getGirisYapanlarListesi();
+            try {
+                if (girisYapanlarListesi.get(userID - 1)){
+                    girisYapanlarListesi.set(userID - 1, false);
+                }else {
+                    out.println("50 HATA - USER NOT LOGGED IN");
+                    return;
+                }
+            }catch (Exception e){
+                out.println("50 HATA - USER NOT LOGGED IN");
+                return;
+            }
+            System.out.print("GİRİŞ YAPANLAR LİSTESİ => ");
+            System.out.println(girisYapanlarListesi);
+            serverAboneler.setGirisYapanlarListesi(girisYapanlarListesi);
+            setEpochMiliSeconds();
+            Thread a = new ServersUpdate("localhost", 5002, serverAboneler); // Ping Server2
+            Thread b = new ServersUpdate("localhost", 5003, serverAboneler); // Ping Server2
+            a.start();
+            b.start();
+            try {
+                a.join();
+                b.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -157,11 +264,11 @@ public class Server1 {
         }
     }
 
-    private static class ServerUpdate extends Thread {
+    private static class ServersUpdate extends Thread {
         private String host;
         private int port;
         private Aboneler aboneler;
-        public ServerUpdate(String host, int port, Aboneler aboneler) {
+        public ServersUpdate(String host, int port, Aboneler aboneler) {
             this.host = host;
             this.port = port;
             this.aboneler = aboneler;
@@ -172,17 +279,18 @@ public class Server1 {
                     PrintWriter outString = new PrintWriter(socketToServer.getOutputStream(),true);
                     outString.println("xxx");
                     socketToServer.close();
-                    sleep(50);
-                    Socket socketToServer2 = new Socket(host, port);
-                    ObjectOutputStream out = new ObjectOutputStream(socketToServer2.getOutputStream());
-                    out.writeObject(aboneler);
+                    sleep(2);
+                    sendObjectToServer();
                     break;
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
+                } catch (IOException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             }
+        }
+        private void sendObjectToServer() throws IOException {
+            Socket socketToServer2 = new Socket(host, port);
+            ObjectOutputStream out = new ObjectOutputStream(socketToServer2.getOutputStream());
+            out.writeObject(aboneler);
         }
     }
 }

@@ -2,13 +2,16 @@ import java.io.*;
 import java.net.Socket;
 
 public class Client {
+
     private static final String SERVER1_HOST = "localhost";
     private static final int SERVER1_PORT = 5001;
     private static final String SERVER2_HOST = "localhost";
     private static final int SERVER2_PORT = 5002;
     private static final String SERVER3_HOST = "localhost";
     private static final int SERVER3_PORT = 5003;
-
+    public static final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_RESET = "\u001B[0m";
     public static void main(String[] args) throws IOException {
         String command;
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
@@ -17,6 +20,7 @@ public class Client {
 
             }else{
                 sendAndReceiveMessage(SERVER1_HOST, SERVER1_PORT, command);
+                sendAndReceiveMessage(SERVER3_HOST, SERVER3_PORT, command);
             }
         }
         /*
@@ -49,7 +53,7 @@ public class Client {
 
             // Receive the response from the server
             String response = in.readLine();
-            System.out.println("Response from server on port " + port + ": " + response);
+            System.out.println("Response from server on port " + ANSI_BLACK_BACKGROUND + ANSI_GREEN + " " + port + ": " + response + " " + ANSI_RESET );
         } catch (IOException e) {
             System.out.println("Error connecting to server on port " + port + ": " + e.getMessage());
         }
