@@ -68,6 +68,7 @@ public class Server1 {
             //ReentrantLock lock = new ReentrantLock();
             //lock.lock();
             if (Mode) {
+                    Mode = false;
                 try {
                     out = new PrintWriter(clientSocket.getOutputStream(), true);
                     ObjectInputStream inObject  = new ObjectInputStream(clientSocket.getInputStream());
@@ -86,7 +87,6 @@ public class Server1 {
                     }
                     System.out.println(" " + ANSI_GREEN_BACKGROUND + " " + ANSI_RESET + " ServerAboneler güncellendi.");
 
-                    Mode = false;
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 } catch (ClassNotFoundException e) {

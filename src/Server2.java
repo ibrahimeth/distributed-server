@@ -50,6 +50,7 @@ public class Server2 {
             String message = null;
             PrintWriter out = null;
             if (Mode) {
+                Mode = false;
                 try {
                     out = new PrintWriter(clientSocket.getOutputStream(), true);
                     ObjectInputStream inObject = new ObjectInputStream(clientSocket.getInputStream());
@@ -67,7 +68,6 @@ public class Server2 {
                     }
                     System.out.println(" " + ANSI_GREEN_BACKGROUND + " " + ANSI_RESET + " ServerAboneler güncellendi.");
 
-                    Mode = false;
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 } catch (ClassNotFoundException e) {
