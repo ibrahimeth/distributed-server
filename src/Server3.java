@@ -3,6 +3,7 @@ import java.net.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Server3 {
     private static final int PORT = 5003; // Server3's port
@@ -48,16 +49,17 @@ public class Server3 {
             BufferedReader in = null;
             String message = null;
             PrintWriter out = null;
-            ObjectInputStream inObject = null;
-
             if (Mode){
                 try {
                     out = new PrintWriter(clientSocket.getOutputStream(), true);
-                    inObject = new ObjectInputStream(clientSocket.getInputStream());
+                    ObjectInputStream inObject =  new ObjectInputStream(clientSocket.getInputStream());
                     Aboneler newObject = (Aboneler) inObject.readObject();
-                    if (serverAboneler.getEpochMiliSeconds() < newObject.getEpochMiliSeconds()){ //GÜNCELLE
+                    if (serverAboneler.getEpochMiliSeconds() <= newObject.getEpochMiliSeconds()){ //GÜNCELLE
                         //serverAboneler.setEpochMiliSeconds(newObject.getEpochMiliSeconds());
-                        serverAboneler = newObject ;
+                        serverAboneler.setEpochMiliSeconds(newObject.getEpochMiliSeconds());
+                        serverAboneler.setAboneler(newObject.getAboneler());
+                        serverAboneler.setGirisYapanlarListesi(newObject.getGirisYapanlarListesi());
+                        //serverAboneler = newObject ;
                         System.out.print(serverAboneler.getEpochMiliSeconds());
                     }else{
                         System.out.println("daha eski");
@@ -134,10 +136,13 @@ public class Server3 {
             System.out.println(abonelerListesi);
             serverAboneler.setAboneler(abonelerListesi);
             setEpochMiliSeconds();
-            Thread a = new ServersUpdate("localhost", 5002, serverAboneler); // Ping Server2
+            Thread a = new ServersUpdate("localhost", 5001, serverAboneler); // Ping Server2
+            Thread b = new ServersUpdate("localhost", 5002, serverAboneler); // Ping Server2
+            b.start();
             a.start();
             try {
                 a.join();
+                b.join();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -166,10 +171,13 @@ public class Server3 {
             System.out.println(abonelerListesi);
             serverAboneler.setAboneler(abonelerListesi);
             setEpochMiliSeconds();
-            Thread a = new ServersUpdate("localhost", 5002, serverAboneler); // Ping Server2
+            Thread a = new ServersUpdate("localhost", 5001, serverAboneler); // Ping Server2
+            Thread b = new ServersUpdate("localhost", 5002, serverAboneler); // Ping Server2
+            b.start();
             a.start();
             try {
                 a.join();
+                b.join();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -199,10 +207,13 @@ public class Server3 {
                 System.out.println(girisYapanlarListesi);
                 serverAboneler.setGirisYapanlarListesi(girisYapanlarListesi);
                 setEpochMiliSeconds();
-                Thread a = new ServersUpdate("localhost", 5002, serverAboneler); // Ping Server2
+                Thread a = new ServersUpdate("localhost", 5001, serverAboneler); // Ping Server2
+                Thread b = new ServersUpdate("localhost", 5002, serverAboneler); // Ping Server2
+                b.start();
                 a.start();
                 try {
                     a.join();
+                    b.join();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -231,10 +242,13 @@ public class Server3 {
             System.out.println(girisYapanlarListesi);
             serverAboneler.setGirisYapanlarListesi(girisYapanlarListesi);
             setEpochMiliSeconds();
-            Thread a = new ServersUpdate("localhost", 5002, serverAboneler); // Ping Server2
+            Thread a = new ServersUpdate("localhost", 5001, serverAboneler); // Ping Server2
+            Thread b = new ServersUpdate("localhost", 5002, serverAboneler); // Ping Server2
+            b.start();
             a.start();
             try {
                 a.join();
+                b.join();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -289,7 +303,7 @@ public class Server3 {
                     PrintWriter outString = new PrintWriter(socketToServer.getOutputStream(),true);
                     outString.println("xxx");
                     socketToServer.close();
-                    sleep(2);
+                    sleep(4);
                     sendObjectToServer();
                     break;
                 } catch (IOException | InterruptedException e) {
@@ -297,7 +311,9 @@ public class Server3 {
                 }
             }
         }
-        private void sendObjectToServer() throws IOException {
+
+
+        private synchronized void sendObjectToServer() throws IOException {
             Socket socketToServer2 = new Socket(host, port);
             ObjectOutputStream out = new ObjectOutputStream(socketToServer2.getOutputStream());
             out.writeObject(aboneler);
