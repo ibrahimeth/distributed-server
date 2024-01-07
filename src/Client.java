@@ -18,7 +18,6 @@ public class Client {
         String command;
         int serverMode;
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        /*
         while(true){
             serverMode = Integer.parseInt(in.readLine());
             command = in.readLine();
@@ -41,38 +40,40 @@ public class Client {
             }
         }
 
-         */
+        /*
         long startTime = System.currentTimeMillis();
         try {
-            sleep(7000);
+            sleep(4000);
             sendAndReceiveMessage(SERVER1_HOST, SERVER1_PORT, "ABONOL 2");
-            sleep(7000);
+            sleep(4000);
             sendAndReceiveMessage(SERVER1_HOST, SERVER1_PORT, "ABONIPTAL 3");
-            sleep(7000);
+            sleep(4000);
             sendAndReceiveMessage(SERVER3_HOST, SERVER3_PORT, "GIRIS 2");
-            sleep(7000);
+            sleep(4000);
             sendAndReceiveMessage(SERVER2_HOST, SERVER2_PORT, "CIKIS 2");
-            sleep(7000);
+            sleep(4000);
             sendAndReceiveMessage(SERVER3_HOST, SERVER3_PORT, "ABONOL 4");
-            sleep(7000);
+            sleep(4000);
             sendAndReceiveMessage(SERVER2_HOST, SERVER2_PORT, "ABONIPTAL 2");
-            sleep(7000);
+            sleep(4000);
             sendAndReceiveMessage(SERVER3_HOST, SERVER3_PORT, "GIRIS 4");
-            sleep(7000);
+            sleep(4000);
             sendAndReceiveMessage(SERVER1_HOST, SERVER1_PORT, "CIKIS 3");
-            sleep(7000);
+            sleep(4000);
             sendAndReceiveMessage(SERVER2_HOST, SERVER2_PORT, "GIRIS 1");
-            sleep(7000);
+            sleep(4000);
             sendAndReceiveMessage(SERVER1_HOST, SERVER1_PORT, "ABONOL 3");
-            long estimatedTime = System.currentTimeMillis() - startTime;
-            double seconds = (double)estimatedTime/1000;
-            //System.out.println("10 istek süresi =>" + seconds);
-            double time = givePerSecondRequest(seconds) ;
-            //System.out.println("1 saniyede " + String.valueOf(time) );
+
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+        long estimatedTime = System.currentTimeMillis() - startTime;
+        double seconds = (double)estimatedTime/1000;
+        System.out.println("10 istek süresi =>" + seconds);
+        double time = givePerSecondRequest(seconds) ;
+        System.out.println("1 saniyede " + String.valueOf(time) );
 
+         */
     }
     public static int givePerSecondRequest(double second){
         double a = 600 / second;
@@ -88,7 +89,7 @@ public class Client {
 
             // Receive the response from the server
             String response = in.readLine();
-            System.out.println(message +"  " + ANSI_BLACK_BACKGROUND + ANSI_GREEN + " " + port + ": " + response + " " + ANSI_RESET );
+            System.out.println("Response from server on port " + ANSI_BLACK_BACKGROUND + ANSI_GREEN + " " + port + ": " + response + " " + ANSI_RESET );
         } catch (IOException e) {
             System.out.println("Error connecting to server on port " + port + ": " + e.getMessage());
         }

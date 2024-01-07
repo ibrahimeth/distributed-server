@@ -30,7 +30,7 @@ public class Server1 {
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_BLACK = "\u001B[30m";
     public static final String ANSI_GREEN = "\u001B[32m";
-
+    public static final String ANSI_RED_BACKGROUND = "\u001B[41m";
     public static final String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
     public static final String ANSI_GREEN_BACKGROUND = "\u001B[42m";
     public static final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
@@ -80,12 +80,14 @@ public class Server1 {
                         serverAboneler.setAboneler(newObject.getAboneler());
                         serverAboneler.setGirisYapanlarListesi(newObject.getGirisYapanlarListesi());
                         //serverAboneler = newObject;
-                        System.out.print(serverAboneler.getEpochMiliSeconds());
+                        System.out.print(clientSocket.getPort());
+                        out.println("55 TAMM");
                     } else {
-                        System.out.println("daha eski");
+                        System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
+                        out.println("50 HATA - MESAJ ESKİ TARİHLİ");
                         //BU ARKADAŞ DİGERLERİNE GONDERMELI
                     }
-                    System.out.println(" " + ANSI_GREEN_BACKGROUND + " " + ANSI_RESET + " ServerAboneler güncellendi.");
+                    System.out.println(" " + ANSI_GREEN_BACKGROUND + " " + ANSI_RESET + " ServerAboneler was updated");
 
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -105,6 +107,7 @@ public class Server1 {
                         if (message != null) {
                             String[] commandList = message.split(" ");
                             if (commandList.length != 2) {
+                                System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
                                 out.println("50 HATA - You should send it as 'command {userId}'");
                                 return;
                             }
@@ -119,6 +122,7 @@ public class Server1 {
                             } else if (command.equals("CIKIS")) {
                                 logoutUser(userId, out);
                             } else {
+                                System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
                                 out.println("50 HATA - UNKNOWN COMMAND SENT");
                                 return;
                             }
@@ -145,11 +149,14 @@ public class Server1 {
                     //sunucuları haberdar et.
                 } else {
                     out.println("50 HATA - NO SUBSCRIPTION ALREADY");
+                    System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
+
                     return;
                 }
             } catch (Exception b) {
                 //zaten kullanıcı abonelıgı yok hata yonetimi yapılamsı gerkiyor.
                 out.println("50 HATA - NO SUBSCRIPTION ALREADY");
+                System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
                 return;
             }
             System.out.print("ABONELER LİSTESİ=> ");
@@ -174,6 +181,7 @@ public class Server1 {
             try {
                 if (abonelerListesi.get(userId - 1)) {
                     out.println("50 HATA - SUBSCRIPTION ALREADY EXISTS");
+                    System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
                     return;
                 } else {
                     abonelerListesi.set(userId - 1, true);
@@ -219,6 +227,7 @@ public class Server1 {
                     girisYapanlarListesi.add(true);
                 } else { //Guzel dizi boyutu normal
                     if (girisYapanlarListesi.get(userId - 1).equals(true)) {
+                        System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
                         out.println("50 HATA - USER ALREADY LOGGED");
                         return;
                     } else {
@@ -240,6 +249,7 @@ public class Server1 {
                     throw new RuntimeException(e);
                 }
             } else {
+                System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
                 out.println("50 HATA - USER CANNOT LOGIN WITHOUT SUBSCRIBE");
             }
         }
@@ -255,10 +265,12 @@ public class Server1 {
                 if (girisYapanlarListesi.get(userID - 1)) {
                     girisYapanlarListesi.set(userID - 1, false);
                 } else {
+                    System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
                     out.println("50 HATA - USER NOT LOGGED IN");
                     return;
                 }
             } catch (Exception e) {
+                System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
                 out.println("50 HATA - USER NOT LOGGED IN");
                 return;
             }
@@ -335,8 +347,9 @@ public class Server1 {
                         PrintWriter outString = new PrintWriter(socketToServer.getOutputStream(), true);
                         outString.println("xxx");
                         socketToServer.close();
-                        sleep(4); //azaltılabilir.
+                        sleep(1); //azaltılabilir.
                         sendObjectToServer();
+
                         break;
                     } catch (IOException | InterruptedException e) {
                         throw new RuntimeException(e);
@@ -347,7 +360,15 @@ public class Server1 {
             private synchronized void sendObjectToServer() throws IOException {
                 Socket socketToServer2 = new Socket(host, port);
                 ObjectOutputStream out = new ObjectOutputStream(socketToServer2.getOutputStream());
+                BufferedReader in = new BufferedReader(new InputStreamReader(socketToServer2.getInputStream()));
                 out.writeObject(aboneler);
+                String message = in.readLine();
+                if (message.equals("55 TAMM")){
+                    System.out.println("Server to Server " + ANSI_BLACK_BACKGROUND + ANSI_GREEN + " " + port + ": " + message + " " + ANSI_RESET );
+                }else{
+                    System.out.println("güncel olmayan Obje gönderimi");
+                }
+
             }
         }
     }
