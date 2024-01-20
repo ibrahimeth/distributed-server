@@ -14,7 +14,7 @@ public class Client {
     public static final String ANSI_BLACK_BACKGROUND = "\u001B[40m";
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_RESET = "\u001B[0m";
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         /*
         String command;
         int serverMode;
@@ -51,7 +51,7 @@ public class Client {
         sendAndReceiveMessage(SERVER3_HOST, SERVER3_PORT, "GIRIS 4");
         sendAndReceiveMessage(SERVER1_HOST, SERVER1_PORT, "CIKIS 3");
         sendAndReceiveMessage(SERVER2_HOST, SERVER2_PORT, "GIRIS 1");
-        sendAndReceiveMessage(SERVER1_HOST, SERVER1_PORT, "ABONOL 3");
+        sendAndReceiveMessage(SERVER1_HOST, SERVER1_PORT, "ABONOL 2");
 
         long estimatedTime = System.currentTimeMillis() - startTime;
         double seconds = (double)estimatedTime/1000;
@@ -67,15 +67,11 @@ public class Client {
         try (Socket socket = new Socket(host, port);
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-
-            // Send a message to the server
-            out.println(message);
-
-            // Receive the response from the server
-            String response = in.readLine();
-            System.out.println("Response from server on port " + ANSI_BLACK_BACKGROUND + ANSI_GREEN + " " + port + ": " + response + " " + ANSI_RESET );
-        } catch (IOException e) {
-            System.out.println("Error connecting to server on port " + port + ": " + e.getMessage());
-        }
+                out.println(message);
+                String response = in.readLine();
+                System.out.println("Response from server on port " + ANSI_BLACK_BACKGROUND + ANSI_GREEN + " " + port + ": " + response + " " + ANSI_RESET );
+             } catch (IOException e) {
+                System.out.println("Error connecting to server on port " + port + ": " + e.getMessage());
+             }
     }
 }

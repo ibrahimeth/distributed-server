@@ -40,10 +40,8 @@ public class Server2 {
         ServerSocket serverSocket = new ServerSocket(PORT);
         Aboneler serverAboneler = new Aboneler();
         System.out.println(ANSI_BLACK_BACKGROUND + ANSI_GREEN + "Server2 is running on port " + PORT + ANSI_RESET);
-        // Listen for client connections
         try {
             while (true) {
-                // server a erişen bir clienti burada lock yapabiliriz ???
                 new ClientHandler(serverSocket.accept(), serverAboneler).start();
             }
         } finally {
@@ -66,29 +64,22 @@ public class Server2 {
             BufferedReader in = null;
             String message = null;
             PrintWriter out = null;
-            //ReentrantLock lock = new ReentrantLock();
-            //lock.lock();
             if (Mode) {
                 Mode = false;
                 try {
                     out = new PrintWriter(clientSocket.getOutputStream(), true);
                     ObjectInputStream inObject  = new ObjectInputStream(clientSocket.getInputStream());
                     Aboneler newObject = (Aboneler) inObject.readObject();
-                    // ifi kontrol ett
                     if (serverAboneler.getEpochMiliSeconds() <= newObject.getEpochMiliSeconds()) { //GÜNCELLE
-                        //serverAboneler.setEpochMiliSeconds(newObject.getEpochMiliSeconds());
                         serverAboneler.setEpochMiliSeconds(newObject.getEpochMiliSeconds());
                         serverAboneler.setAboneler(newObject.getAboneler());
                         serverAboneler.setGirisYapanlarListesi(newObject.getGirisYapanlarListesi());
-                        //serverAboneler = newObject;
-                        //System.out.print(clientSocket.getPort());
                         System.out.print(clientSocket.getPort());
                         out.println("55 TAMM");
                     } else {
                         System.out.println("daha eski");
                         System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
                         out.println("50 HATA - MESAJ ESKİ TARİHLİ");
-                        //BU ARKADAŞ DİGERLERİNE GONDERMELI
                     }
                     System.out.println(" " + ANSI_GREEN_BACKGROUND + " " + ANSI_RESET + " ServerAboneler was updated");
 
@@ -105,7 +96,6 @@ public class Server2 {
                     message = in.readLine();
                     if (message.equals("xxx")) {
                         Mode = true;
-                        //System.out.println("mode değişti " + String.valueOf(Mode));
                     } else {
                         if (message != null) {
                             String[] commandList = message.split(" ");
@@ -149,14 +139,12 @@ public class Server2 {
             try {
                 if (abonelerListesi.get(userId - 1)) {
                     abonelerListesi.set(userId - 1, false);
-                    //sunucuları haberdar et.
                 } else {
                     System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
                     out.println("50 HATA - NO SUBSCRIPTION ALREADY");
                     return;
                 }
             } catch (Exception b) {
-                //zaten kullanıcı abonelıgı yok hata yonetimi yapılamsı gerkiyor.
                 System.out.println(ANSI_RED_BACKGROUND + ANSI_BLACK + " INVALID REQUEST " + ANSI_RESET);
                 out.println("50 HATA - NO SUBSCRIPTION ALREADY");
                 return;
@@ -284,7 +272,6 @@ public class Server2 {
             Thread b = new ServersUpdate("localhost", 5003, serverAboneler); // Ping Server2
             b.start();
             a.start();
-            //serverların gönderdiği cevaba bakabilirsin
             try {
                 b.join();
                 a.join();
